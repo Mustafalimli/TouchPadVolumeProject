@@ -1,5 +1,6 @@
 package com.example.volumescroll
 
+import androidx.compose.animation.core.*
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Intent
