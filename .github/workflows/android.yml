@@ -1,0 +1,63 @@
+name: Android APK Derleyici (Final)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodları İndir
+        uses: actions/checkout@v4
+
+      - name: Kök settings.gradle.kts Oluştur
+        run: |
+          cat << 'EOF' > settings.gradle.kts
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = "TouchpadVolumeControl"
+          include(":app")
+          EOF
+
+          cat << 'EOF' > gradle.properties
+          org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+          android.useAndroidX=true
+          kotlin.code.style=official
+          android.nonTransitiveRClass=true
+          EOF
+
+      - name: Java 17 Kurulumu
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Gradle Kurulumu
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: APK Derle (Debug)
+        run: gradle assembleDebug --stacktrace
+
+      - name: APK Dosyasını Kaydet (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TouchpadKontrol-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
